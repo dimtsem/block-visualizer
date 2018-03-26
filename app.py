@@ -72,7 +72,7 @@ def figure():
         lb = data.json()
         block = lb
     except:
-        print('Could not retrieve block - incorrect block hash?')
+        print('We could not retrieve block - incorrect block hash?')
     
   #Convert the data into a DataFrame
   n_tx = int(block['n_tx'])
