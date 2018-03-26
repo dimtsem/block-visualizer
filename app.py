@@ -71,7 +71,8 @@ def figure():
         block = data.json()
     except:
         print('We could not retrieve block - incorrect block hash?')
-    
+        return render_template('index2.html')
+ 
   #Convert the data into a DataFrame
   n_tx = int(block['n_tx'])
   txseries = pd.Series(block['tx'])
