@@ -14,18 +14,6 @@
 <body>
 <H1>BTC Block Transaction Graph</H1>
 
-<form action="/">
-<select name="feature_name">
-	{% for feature in feature_names %}
-		{% if feature == current_feature_name %}
-			<option selected value="{{ feature }}">{{ feature }}</option> 
-		{% else %} 
-			<option value="{{ feature }}">{{ feature }}</option> 
-		{% endif %}
-	{% endfor %}
-</select>
-<input type="submit">
-</form>
 
 {{ script|safe }}
 {{ div|safe }}

@@ -45,7 +45,6 @@ def create_figure(G,ntx):
     plot.renderers.append(graph_renderer)
 
 
-    output_file("block_plot.html")
     return plot
 
 @app.route('/')
