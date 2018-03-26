@@ -63,14 +63,12 @@ def figure():
     lh = str(r.text)
     latestblock_url = 'https://blockchain.info/rawblock/'+lh
     data = requests.get(latestblock_url)
-    lb = data.json()
-    block = lb
+    block = data.json()
   else:
     try:
         latestblock_url = 'https://blockchain.info/rawblock/'+blockhash
         data = requests.get(latestblock_url)
-        lb = data.json()
-        block = lb
+        block = data.json()
     except:
         print('We could not retrieve block - incorrect block hash?')
     
@@ -105,4 +103,4 @@ def about():
   return render_template('about.html')
 
 if __name__ == '__main__':
-  app.run(port=33507)
+  app.run(port=33507, debug=True)
