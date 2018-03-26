@@ -51,7 +51,7 @@ def create_figure(G,ntx):
 def index():
     return render_template('index2.html')
 
-@app.route('/figure')
+@app.route('/block_plot')
 def figure():
   blockhash = request.args.get("blockhash")
   
