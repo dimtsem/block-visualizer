@@ -49,10 +49,10 @@ def create_figure(G,ntx):
 
 @app.route('/')
 def index():
-    return render_template('index2.html')
+#    return render_template('index2.html')
 
-@app.route('/block_plot')
-def figure():
+#@app.route('/block_plot')
+#def figure():
   blockhash = request.args.get("blockhash")
   
   if blockhash == 'latest':
