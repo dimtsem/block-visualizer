@@ -14,6 +14,10 @@ from bokeh.embed import components
 
 app = Flask(__name__)
 
+###########################
+#### Bokeh Figure Code ####
+###########################
+
 def create_figure(G,ntx):
     plot = Plot(plot_width=800, plot_height=600,
                 x_range=Range1d(-1.1,1.1), y_range=Range1d(-1.1,1.1))
@@ -70,12 +74,17 @@ def create_transactor_figure(G):
 
     return plot	
 
+####################################
+#### Wallet Data Retrieval Code ####
+####################################
+
 def get_wallet_data(wallethash):
-    w = str(wallethash)
-    wallet_url = 'https://blockchain.info/rawaddr/'+w
-    data = requests.get(wallet_url)
-    wallet = data.json()
-    return pd.DataFrame(wallet)['txs']
+    #w = str(wallethash)
+    print(str(wallethash))
+    wallet_url = str('https://blockchain.info/rawaddr/'+str(wallethash))
+    data = requests.get(wallet_url).json()
+    #wallet = data.json()
+    return pd.DataFrame(data)['txs']
 
 def wallet_filter(wallethash,Z):
     for i in Z.index:
@@ -127,16 +136,23 @@ def make_graph(nodedata):
 
 def make_graph_ofdepth(wallet,depth):
     if depth == 0:
-      G = make_graph(get_nodes(wallet))
-      return G
+        try:  
+            G = make_graph(get_nodes(wallet))
+            return G
+        except:
+            G = nx.MultiDiGraph()
+            return G
     else:
       G = make_graph_ofdepth(wallet,depth-1)
       for interactor in get_interactors_ofdepth(wallet, depth):
-        nodedata = get_nodes(interactor)
-        for i in nodedata.index:
-          for x in nodedata['Senders'][i]:
-            for y in nodedata['Receivers'][i]:
-              G.add_edge(x,y)
+        try:
+          nodedata = get_nodes(interactor)
+          for i in nodedata.index:
+            for x in nodedata['Senders'][i]:
+              for y in nodedata['Receivers'][i]:
+                G.add_edge(x,y)
+        except:
+          print('Could not retrieve data from wallet ', interactor)
     return G
 
 
@@ -156,7 +172,7 @@ def get_nodes_nofilter(wallet):
 
 def equalitytest_simple(wallet1, wallet2):
     senders1 = get_nodes_nofilter(wallet1)['Senders']
-    senders2 = get_nodes_nofilter(wallet2)['Receivers']
+    senders2 = get_nodes_nofilter(wallet2)['Senders']
     while True:
         for x in senders1:
             if wallet2 in x:
@@ -171,15 +187,19 @@ def equalitytest_simple(wallet1, wallet2):
         break
     return False
 
+
+###################
+#### MAIN BODY ####
+###################
+
 @app.route('/')
 def index():
-  
-  blockhash = request.args.get("blockhash")
-  wallethash = request.args.get("wallethash")
-  #print(blockhash, type(blockhash))
-  #print(wallethash, type(wallethash))
+  return render_template("index2.html")
 
-  if blockhash != None:
+@app.route('/blockplot')
+def blockplot():
+    blockhash = request.args.get("blockhash")
+  
     if blockhash == 'latest':
       #Retrieve the latest bloc hash from the Blockchain.info API
       latesthash = 'https://blockchain.info/q/latesthash'
@@ -220,24 +240,47 @@ def index():
 
     script, div = components(plot)
     return render_template("block_plot.html", script=script, div=div)
-  elif wallethash != None:
-    #try:
-      G = make_graph_ofdepth(get_nodes(wallethash),1)
-      print('Graph OK')
-      plot = create_transactor_figure(G)
-      print('plot OK')
-      script, div = components(plot)
-      print('script, div OK')
-      return render_template("wallet_plot.html", script=script, div=div)
-      print('OK')
-    #except:
-    #  print('We could not retrieve wallet - incorrect wallet hash?')
-    #  return render_template('index2.html')
-  else:
-      print('Input makes no sense.')
-      return render_template('index2.html')
 
+@app.route('/walletplot')
+def walletplot():
+    wallethash = request.args.get("wallethash")
+    w = str(wallethash)
+    wallet_url = 'https://blockchain.info/rawaddr/'+w
+    data = requests.get(wallet_url)
+    wallet = data.json()
+    txdata = pd.DataFrame(wallet)['txs']
+    n_tx = len(txdata)
+    tx = pd.DataFrame(txdata.tolist())
+    LL = [[tx['inputs'][j][i]['prev_out']['addr'] for i in range(tx['vin_sz'][j])] for j in range(0,n_tx)]
+    txin = pd.Series(LL)
+    LLL = [[tx['out'][j][i]['addr'] for i in range(tx['vout_sz'][j]) if 'addr' in tx['out'][j][i].keys()] for j in range(0,n_tx)]
+    txout = pd.Series(LLL)
+    txg_nodes = pd.DataFrame({'Senders':txin,'Receivers':txout})
+    W = wallet_filter(wallet, txg_nodes)
+    G = make_graph(W)
+    plot = create_transactor_figure(G)
+    script, div = components(plot)
+    return render_template("wallet_plot.html", script=script, div=div)
 
+    #wallethash = request.args.get("wallethash")
+    #G = make_graph_ofdepth(get_nodes(wallethash),1)
+    #plot = create_transactor_figure(G)
+    #script, div = components(plot)
+    #return render_template("wallet_plot.html", script=script, div=div)
+
+@app.route('/equalityresult')
+def equalityresult():
+    wallet1 = request.args.get('wallethash1')
+    wallet2 = request.args.get('wallethash2')
+    if equalitytest_simple(wallet1,wallet2):
+        return render_template('equalityresult.html', result='These wallets belong to the same entity')
+    else:
+        return render_template('equalityresult.html', result='These wallets do not belong to the same entity')
+
+@app.route('/wallettype')
+def wallettype():
+    return render_template('wallettype.html')
+    
 @app.route('/about')
 def about():
   return render_template('about.html')

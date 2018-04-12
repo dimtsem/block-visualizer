@@ -3,8 +3,11 @@
 <body>
 
 <h2>BTC Visualizer</h2>
-
-<form action="/">
+<a href="/about">About</a>
+<br>
+<br>
+<br>
+<form action="/blockplot">
   Enter a block hash, or type "latest" to visualize the most recent block:
   <br><br>
   <input type="text" name="blockhash" size="70">
@@ -13,7 +16,7 @@
 </form>
 <br>
 <br>
-<form action="/">
+<form action="/walletplot">
   Enter a wallet hash to visualize the transaction pattern for that wallet:
   <br><br>
   <input type="text" name="wallethash" size="70">
@@ -22,7 +25,7 @@
 </form>
 <br>
 <br>
-<form action="/">
+<form action="/equalityresult">
   Enter two wallet hashes to estimate if they belong to the same entity:
   <br><br>
   <input type="text" name="wallethash1" size="70">
@@ -33,12 +36,12 @@
 </form>
 <br>
 <br>
-<form action="/">
+<form action="/wallettype">
   Enter a wallethash to see what type of transactor it corresponds to:
   <br><br>
   <input type="text" name="wallethashtype" size="70">
   <br><br>
-  <input type="submit" value="Compare">
+  <input type="submit" value="Classify">
 </form>
 </body>
 </html>
