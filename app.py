@@ -289,13 +289,13 @@ def equalityresult():
 @app.route('/wallettype')
 def wallettype():
     model = pickle.load(open('kmeans_classification.sav', 'rb'))
-    address = requests.args.get('address')
+    address = request.args.get('address')
     
     try:
         b = BitcoinAddress('17A16QmavnUfCW11DAApiJxp7ARnxN5pGX')
         X = b.stats()
         stats = (X[0],X[1]/X[0],X[2]/X[0],X[3]/X[0],X[4]/X[0],X[3]/X[4],X[6],X[7])
-        addrclass = loaded_kmeans.predict([stats])[0]
+        addrclass = model.predict([stats])[0]
         return render_template('wallettype.html', result = 'This address is of type '+str(addrclass))
     except:
         return render_template('wallettype.html', result = 'Could not classify address')
