@@ -8,3 +8,5 @@ simplejson
 neworkx
 requests
 sklearn
+scipy
+numpy
