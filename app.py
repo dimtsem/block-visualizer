@@ -2,6 +2,15 @@ from flask import Flask, render_template, request, redirect
 import requests
 import pandas as pd
 import networkx as nx
+import pickle
+
+from addrstats import BitcoinAddress, BitcoinBlock
+
+from sklearn import base
+from sklearn.pipeline import Pipeline
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+
 from bokeh.io import show, output_file
 from bokeh.models import Plot, Range1d, MultiLine, Circle, HoverTool, TapTool, BoxSelectTool, BoxAnnotation
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges, EdgesAndLinkedNodes
@@ -279,7 +288,17 @@ def equalityresult():
 
 @app.route('/wallettype')
 def wallettype():
-    return render_template('wallettype.html')
+    model = pickle.load(open('kmeans_classification.sav', 'rb'))
+    address = requests.args.get('address')
+    
+    try:
+        b = BitcoinAddress('17A16QmavnUfCW11DAApiJxp7ARnxN5pGX')
+        X = b.stats()
+        stats = (X[0],X[1]/X[0],X[2]/X[0],X[3]/X[0],X[4]/X[0],X[3]/X[4],X[6],X[7])
+        addrclass = loaded_kmeans.predict([stats])[0]
+        return render_template('wallettype.html', result = 'This address is of type '+str(addrclass))
+    except:
+        return render_template('wallettype.html', result = 'Could not classify address')
     
 @app.route('/about')
 def about():
