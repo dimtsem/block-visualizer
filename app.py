@@ -32,11 +32,20 @@ def create_figure(G,ntx):
                 x_range=Range1d(-1.1,1.1), y_range=Range1d(-1.1,1.1))
     plot.title.text = "BTC Block Visualization"
 
-    citation = Label(x=40, y=0, x_units='screen', y_units='screen',
-                 text='There were '+str(ntx)+' transactions total. The most active transactor was involved in '+str(max(list(dict(G.degree()).values())))+' transactions.',
-                 render_mode='css',
-                 border_line_color='black', border_line_alpha=1.0,
-                 background_fill_color='white', background_fill_alpha=1.0)
+    citation = Label(x=0, y=-20, x_units='screen', y_units='screen',
+                text='This block contains '+str(ntx)+\
+                 ' transactions between '+str(len(G.nodes()))+\
+                 ' addresses. The most active address transacted with '+str(max(list(dict(G.degree()).values())))+\
+                 ' addresses.',
+                render_mode='css',
+                border_line_color='red', border_line_alpha=1.0,
+                background_fill_color='white', background_fill_alpha=1.0)
+
+    #citation = Label(x=40, y=0, x_units='screen', y_units='screen',
+    #             text='There were '+str(ntx)+' transactions total. The most active transactor was involved in '+str(max(list(dict(G.degree()).values())))+' transactions.',
+    #             render_mode='css',
+    #             border_line_color='black', border_line_alpha=1.0,
+    #             background_fill_color='white', background_fill_alpha=1.0)
 
     plot.add_layout(citation)
 
