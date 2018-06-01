@@ -3,8 +3,10 @@ import requests
 import pandas as pd
 import networkx as nx
 import pickle
+from collections import defaultdict
 
 from addrstats import BitcoinAddress, BitcoinBlock
+from BTCAddressVisualization import BTCAddressVisualization
 
 from sklearn import base
 from sklearn.pipeline import Pipeline
@@ -20,6 +22,11 @@ from bokeh.plotting import figure, show, output_file
 from bokeh.models import ColumnDataSource, Range1d, LabelSet, Label
 from bokeh.embed import components
 
+import holoviews as hv
+hv.extension('bokeh')
+renderer = hv.renderer('bokeh')
+#%%opts Graph [width=800 height=800]
+#%%opts Graph [color_index='label' edge_color_index='isoriginal'] (cmap='Set1' edge_cmap='viridis')
 
 app = Flask(__name__)
 
@@ -30,7 +37,7 @@ app = Flask(__name__)
 def create_figure(G,ntx):
     plot = Plot(plot_width=800, plot_height=600,
                 x_range=Range1d(-1.1,1.1), y_range=Range1d(-1.1,1.1))
-    plot.title.text = "BTC Block Visualization"
+    #plot.title.text = "BTC Block Visualization"
 
     citation = Label(x=0, y=-20, x_units='screen', y_units='screen',
                 text='This block contains '+str(ntx)+\
@@ -90,7 +97,8 @@ def create_transactor_figure(G):
 
     plot.renderers.append(graph_renderer)
 
-    return plot	
+    return plot
+
 
 ####################################
 #### Wallet Data Retrieval Code ####
@@ -172,6 +180,41 @@ def make_graph_ofdepth(wallet,depth):
         except:
           print('Could not retrieve data from wallet ', interactor)
     return G
+
+def make_df(wallet):
+    nodedata = get_nodes(wallet)
+    return pd.DataFrame([(x,y) for i in nodedata.index
+                         for x in nodedata['Senders'][i]
+                         for y in nodedata['Receivers'][i]], columns=['Senders','Receivers'])
+
+def make_df_ofdepth(wallet,depth):
+    visited = defaultdict(lambda : False)
+    visited[wallet] = True
+    df = make_df(wallet)
+    while depth > 0:
+        for newwallet in list(set(df['Senders'].tolist()+df['Receivers'].tolist())):
+            if not visited[newwallet]:
+                visited[newwallet] = True
+                df = pd.concat([df,make_df(newwallet)])
+        depth -= 1
+    return df
+
+def make_df_ofdepth_sampling(wallet,depth,samplesize):
+    visited = defaultdict(lambda : False)
+    visited[wallet] = True
+    df = make_df(wallet)
+    df = df.sample(n = min(df.shape[0],samplesize))
+    while depth > 0:
+        for newwallet in list(set(df['Senders'].tolist()+df['Receivers'].tolist())):
+            if not visited[newwallet]:
+                visited[newwallet] = True
+                try:
+                    newdf = make_df(newwallet)
+                    df = pd.concat([df,newdf.sample(n = min(newdf.shape[0],samplesize))])
+                except:
+                    pass
+        depth -= 1
+    return df
 
 
 ########################
@@ -263,28 +306,10 @@ def blockplot():
 def walletplot():
     wallethash = request.args.get("wallethash")
     w = str(wallethash)
-    wallet_url = 'https://blockchain.info/rawaddr/'+w
-    data = requests.get(wallet_url)
-    wallet = data.json()
-    txdata = pd.DataFrame(wallet)['txs']
-    n_tx = len(txdata)
-    tx = pd.DataFrame(txdata.tolist())
-    LL = [[tx['inputs'][j][i]['prev_out']['addr'] for i in range(tx['vin_sz'][j])] for j in range(0,n_tx)]
-    txin = pd.Series(LL)
-    LLL = [[tx['out'][j][i]['addr'] for i in range(tx['vout_sz'][j]) if 'addr' in tx['out'][j][i].keys()] for j in range(0,n_tx)]
-    txout = pd.Series(LLL)
-    txg_nodes = pd.DataFrame({'Senders':txin,'Receivers':txout})
-    W = wallet_filter(wallet, txg_nodes)
-    G = make_graph(W)
-    plot = create_transactor_figure(G)
+    plot = BTCAddressVisualization(w,1,5).plot2()
     script, div = components(plot)
     return render_template("wallet_plot.html", script=script, div=div)
 
-    #wallethash = request.args.get("wallethash")
-    #G = make_graph_ofdepth(get_nodes(wallethash),1)
-    #plot = create_transactor_figure(G)
-    #script, div = components(plot)
-    #return render_template("wallet_plot.html", script=script, div=div)
 
 @app.route('/equalityresult')
 def equalityresult():
@@ -301,9 +326,15 @@ def wallettype():
     address = request.args.get('address')
     
     try:
-        b = BitcoinAddress('17A16QmavnUfCW11DAApiJxp7ARnxN5pGX')
+        b = BitcoinAddress(address)
+    except:
+        return render_template('wallettype.html', result='Could not obtain address data')
+    try:
         X = b.stats()
         stats = (X[0],X[1]/X[0],X[2]/X[0],X[3]/X[0],X[4]/X[0],X[3]/X[4],X[6],X[7])
+    except:
+        return render_template('wallettype.html', result = 'Could not obtain statistics')
+    try:
         addrclass = model.predict([stats])[0]
         return render_template('wallettype.html', result = 'This address is of type '+str(addrclass))
     except:
@@ -311,7 +342,7 @@ def wallettype():
     
 @app.route('/about')
 def about():
-  return render_template('about.html')
+  return render_template('about_simple.html')
 
 if __name__ == '__main__':
   app.run(port=33507, debug=True)

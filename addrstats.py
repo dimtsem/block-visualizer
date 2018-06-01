@@ -93,4 +93,25 @@ class BitcoinBlock():
                                         if 'addr' in txdata[j]['out'][i].keys()] for j in range(0,n_tx)]
         return list(set([y for x in txin for y in x] + [y for x in txout for y in x]))
 
+    def get_addrval(self):
+        txdata = [dict(self.block['tx'][k]) for k in range(self.block['n_tx'])]
+        n_tx = len(txdata)
+        txbal = defaultdict(lambda : 0)
+        txapp = defaultdict(lambda : 0)
+        for j in range(1,n_tx):
+            for i in range(txdata[j]['vin_sz']):
+                try:
+                    txapp[txdata[j]['inputs'][i]['prev_out']['addr']] += 1
+                    txbal[txdata[j]['inputs'][i]['prev_out']['addr']] += txdata[j]['inputs'][i]['prev_out']['value']
+                except:
+                    pass
+            for address in [txdata[j]['out'][i]['addr']
+                for i in range(txdata[j]['vout_sz']) if 'addr' in txdata[j]['out'][i].keys()]:
+                try:
+                    txapp[address] += 1
+                    txbal[address] -= txdata[j]['out'][i]['value']
+                except:
+                    pass
+        return txbal, txapp
+
 

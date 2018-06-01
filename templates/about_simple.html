@@ -1,0 +1,45 @@
+<html>
+<body>
+<h2>About BTC Visualizer</h2>
+<br>
+This aplication provides information about bitcoin (BTC) transactions using the data available on <a href="http://www.blockchain.info">Blockchain.info</a>. All the calculations are performed interactively and there is no database dependence, except for the kMeans classifier used in (4), which has been trained locally, as explained below.
+<br>
+<br>
+This application provides four types of service, explained in the order in which they appear on the <a href="/">home page</a>.
+	  <br>
+	  <br>
+	  1. It creates a visualization of the transactions in any given individual block, and can also retrieve the latest block. The nodes represent individual addresses that appear in transactions on the given block and the edges represent transactions.
+	  <br>
+	  <br>
+	  2. It creates a visualization of a sample of the transaction graph for any given wallet on the BTC blockchain. The nodes represent individual addresses and the edges represent transactions. Given the very large amount of transactions and addresses, this graph is only a sample of "depth" 2 (i.e. it takes into account addresses that have a path to the given address of at most length 2) and for each address on the "perimeter" it samples up to 1000 new addresses that it has transacted with. This allows the graph to be drawn in a reasonable amount of time (no more than a couple of minutes) even for extremely active addresses.
+	  <br>
+	  <br>
+	  3. It compares any two wallets on the BTC blockchain and returns an estimate about whether or not these wallets belong to the same (physical/legal) entity. This estimate is based on a very simple but reliable test which is whether these two addresses have been co-senders, i.e. whether they appear as senders together in a single BTC transaction. The justification, and a more thorough explanation about why this is a reasonable test of "equality", is described <a href="https://eprint.iacr.org/2012/584.pdf">here</a> and <a href="https://cseweb.ucsd.edu/~smeiklejohn/files/imc13.pdf">here</a>, where it is also noted that it is likely that this test almost certainly under-estimates the amount of distinct addresses that belong to the same entity. A negative result in the provided test therefore does not at all guarantee that these addresses do not beong to the same (physical/legal) entity. One more thing to note is that one should really take the "transitive closure" of the "co-sender" relation to get more accurate results. However, due to computational limitations, this is not feasible to do interactively, as we are doing here. But it would be very easy to do with a database. In general, the problem of "entity clustering", i.e. determining which batch of addresses on a blockchain belongs to which entity in the real world seems a very difficult one, and also one which would probably require specialized reasoning for distinct blockchains, and likely not to be inferrable from general mathematical/statistical considerations applicable to any blockchain.
+	  <br>
+	  <br>
+	  4. It takes a block hash as input and returns a plot of the transaction activity in that block according to a certain clustering of addresses, indicating also the total amount of inflow/outflow of BTC for each cluster. The clustering is done with a KMeans classifier trained on a sample of addresses obtained by a custom script which scrapes the data from <a href="http://www.blockchain.info">Blockchain.info</a>. The features used for the clustering are as follows:
+	  <br>
+	  <br>
+	  (i)    Number of transactions in which this address has been involved
+	  <br>
+	  (ii)   Total BTC this address has received
+	  <br>
+	  (iii)  Total BTC this address has sent
+	  <br>
+	  (iv)   The total number of distinct addresses this address has sent BTC to
+	  <br>
+	  (v)    The total number of distinct addresses this address has received BTC by
+	  <br>
+	  (vi)   The average time between each transaction in which this address participates
+	  <br>
+	  (vii)  The maximum time between two transactions this address participated in
+	  <br>
+	  (viii) The minimum time between two transactions this address participated in
+	  <br>
+	  <br>
+	  The number of clusters is set at k=20. This number was arrived at through a combination of "elbow tests" over a range of values of k and heuristics based on the inspection of the centroids (i.e. the cluster centers) of the kMeans clustering to see if they pick out "transactor" types that can reasonably be regarded as distinct (e.g. if they separate "rich" addresses from "poor" addresses from "funneling" addresses). The "elbow tests" were carried out not only on several different sample and subsamples (overall around 120GB worth of data), but also over different sets of features for each address, i.e. over selections of the features (i)-(viii) above, their ratios, etc. 
+	  <br>
+	  <br>
+          <p><a href="/">Home</a></p>
+</body>
+</html>
