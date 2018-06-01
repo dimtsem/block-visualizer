@@ -306,7 +306,7 @@ def blockplot():
 def walletplot():
     wallethash = request.args.get("wallethash")
     w = str(wallethash)
-    plot = BTCAddressVisualization(w,1,5).plot2()
+    plot = BTCAddressVisualization(w,2,20).plot2()
     script, div = components(plot)
     return render_template("wallet_plot.html", script=script, div=div)
 

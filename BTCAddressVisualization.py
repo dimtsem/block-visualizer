@@ -91,6 +91,7 @@ class BTCAddressVisualization():
         df = pd.DataFrame([(x[0],x[1],y[0],y[1]) for i in range(len(LL)) for x in LL[i] for y in LLL[i]],
                              columns=['Sender','Sent','Recipient','Received'])
         df['Scaled_Sent'] = StandardScaler().fit_transform(pd.DataFrame(df['Sent']))
+        df['Bitcoin Sent'] = df['Sent'] * 0.00000001
         return df[(df['Sender'] == address) | (df['Recipient'] == address)]
 
 
@@ -101,7 +102,7 @@ class BTCAddressVisualization():
         df = df.sample(n = min(df.shape[0],samplesize))
         while depth > 0:
             for newwallet in list(set(df['Sender'].tolist()+df['Recipient'].tolist())):
-                if not visited[newwallet]:
+                if not visited[newwallet] and df.shape[0] < 500:
                     visited[newwallet] = True
                     try:
                         newdf = self.make_df2(newwallet)
@@ -147,12 +148,12 @@ class BTCAddressVisualization():
         
         node_info = hv.Dataset(nodedf, vdims='label')
 
-        graph = hv.Graph((dftoplot[['Sender','Recipient','Sent','Scaled_Sent','origin']], node_info)).redim.range(**padding)
+        graph = hv.Graph((dftoplot[['Sender','Recipient','Bitcoin Sent']], node_info)).redim.range(**padding)
 
         renderer = hv.renderer('bokeh')
 
         graphtoplot = graph.opts(plot=dict(width=800,height=600,xaxis=None,yaxis=None,\
-                                   color_index='label', edge_color_index='origin',\
-                                   cmap='Set1', edge_cmap='viridis',inspection_policy='edges'))
+                                   color_index='label', edge_color_index='Bitcoin Sent',inspection_policy='edges'),\
+                                 style=dict(cmap=['blue','green'], edge_cmap='plasma',inspection_policy='edges'))
                                            
         return renderer.get_plot(graphtoplot).state
