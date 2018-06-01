@@ -3,15 +3,6 @@
 <body>
 
 <h2>Bitcoin Transaction and Address Visualizer</h2>
-<a href="/about">About</a>
-<br>
-<br>
-This application produces visualizations of transaction patterns for individual blocks and addresses on the Bitcoin blockchain.
-<br>
-<br>
-It also classifies individual addresses according to their "behaviour" and can estimate whether two addressees belong to the same entity.
-<br>
-<br>
 <br>
 <br>
 <form action="/blockplot">
@@ -24,7 +15,7 @@ It also classifies individual addresses according to their "behaviour" and can e
 <br>
 <br>
 <form action="/walletplot">
-  Enter a wallet hash to visualize the transaction pattern for that wallet:
+  Enter an address hash to visualize its transaction pattern:
   <br><br>
   <input type="text" name="wallethash" size="70">
   <br><br>
@@ -33,7 +24,7 @@ It also classifies individual addresses according to their "behaviour" and can e
 <br>
 <br>
 <form action="/equalityresult">
-  Enter two wallet hashes to estimate if they belong to the same entity:
+  Enter two address hashes to estimate if they belong to the same entity:
   <br><br>
   <input type="text" name="wallethash1" size="70">
   <br><br>
@@ -44,11 +35,14 @@ It also classifies individual addresses according to their "behaviour" and can e
 <br>
 <br>
 <form action="/wallettype">
-  Enter a wallethash to see what type of transactor it corresponds to:
+  Enter a block hash to get statistics on the type of addresses transacting on this block:
   <br><br>
   <input type="text" name="address" size="70">
   <br><br>
   <input type="submit" value="Classify">
 </form>
+<br>
+<br>
+<a href="/about">About</a>
 </body>
 </html>

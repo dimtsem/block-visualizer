@@ -4,6 +4,9 @@ import pandas as pd
 import networkx as nx
 import pickle
 from collections import defaultdict
+#import matplotlib.pyplot as plt
+#import matplotlib as mp
+import numpy as np
 
 from addrstats import BitcoinAddress, BitcoinBlock
 from BTCAddressVisualization import BTCAddressVisualization
@@ -322,24 +325,52 @@ def equalityresult():
 
 @app.route('/wallettype')
 def wallettype():
-    model = pickle.load(open('kmeans_classification.sav', 'rb'))
-    address = request.args.get('address')
+    model = pickle.load(open('kmeans_classifier_addrsample_20.sav', 'rb'))
+    address = request.args.get("address")
+    print(address, type(address))
     
-    try:
-        b = BitcoinAddress(address)
-    except:
-        return render_template('wallettype.html', result='Could not obtain address data')
-    try:
-        X = b.stats()
-        stats = (X[0],X[1]/X[0],X[2]/X[0],X[3]/X[0],X[4]/X[0],X[3]/X[4],X[6],X[7])
-    except:
-        return render_template('wallettype.html', result = 'Could not obtain statistics')
-    try:
-        addrclass = model.predict([stats])[0]
-        return render_template('wallettype.html', result = 'This address is of type '+str(addrclass))
-    except:
-        return render_template('wallettype.html', result = 'Could not classify address')
-    
+    #try:
+    b = BitcoinBlock(address)
+    blockaddresses = b.get_addresses()
+    blockaddrval = b.get_addrval()
+        #except:
+        #return render_template('wallettype.html', result='Could not obtain address data')
+    txbal = blockaddrval[0]
+    txapp = blockaddrval[1]
+
+    A = []
+    for a in blockaddresses[0:5]:
+        print('Getting data for ', a,'...')
+        try:
+            A.append((a,txapp[a],txbal[a],BitcoinAddress(a).stats()))
+            print('...success')
+        except:
+            print('...failed')
+
+    C = [(a[0],a[1],a[2]*0.00000001,model.predict([a[3]])[0]) for a in A]
+    dfraw = pd.DataFrame(C,columns=['address','appearances','balance','cluster'])
+    dftoplot = dfraw.groupby('cluster').sum()
+    dftoplot['BTC'] = dftoplot['balance'] * 0.00000001
+    dftoplot = dftoplot[['appearances','BTC']]
+
+    padding = dict(x=(-1.2, 1.2), y=(-1.2, 1.2))
+
+    data_app = list(zip(dftoplot.index,np.log(dftoplot['appearances'])))
+    data_btc = list(zip(dftoplot.index,dftoplot['BTC']))
+    bars_app = hv.Bars(data_app, hv.Dimension('Address Clusters'), 'Log(Appearances)').redim.range(**padding)
+    bars_btc = hv.Bars(data_btc, hv.Dimension('Address Clusters'), 'BTC').redim.range(**padding)
+
+    bars_app_plot = renderer.get_plot(bars_app.opts(plot=dict(width=400,height=300))).state
+    bars_btc_plot = renderer.get_plot(bars_btc.opts(plot=dict(width=400,height=300))).state
+
+    script1, div1 = components(bars_app_plot)
+    script2, div2 = components(bars_btc_plot)
+
+    return render_template("blockaddrtype_plot.html", script1=script1, div1=div1,\
+                           script2=script2, div2=div2)
+
+
+
 @app.route('/about')
 def about():
   return render_template('about_simple.html')
