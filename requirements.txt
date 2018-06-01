@@ -7,4 +7,4 @@ networkx==2.1
 scikit-learn==0.19.1
 scipy==0.19.1
 numpy==1.14.2
-holoviews==1.10.14
+holoviews==1.10.4
