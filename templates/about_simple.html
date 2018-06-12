@@ -2,7 +2,7 @@
 <body>
 <h2>About BTC Visualizer</h2>
 <br>
-This aplication provides information about bitcoin (BTC) transactions using the data available on <a href="http://www.blockchain.info">Blockchain.info</a>. All the calculations are performed interactively and there is no database dependence, except for the kMeans classifier used in (4), which has been trained locally, as explained below.
+This aplication provides information about bitcoin (BTC) transactions using the data available on <a href="http://www.blockchain.info">Blockchain.info</a>. All the calculations are performed interactively and there is no database dependence, except for the kMeans classifier used in (4), which has been trained locally, as explained below. More details on the ideas behind the application can be found in the <a href="https://github.com/dimtsem/block-visualizer">GitHub repo</a>, especially in the notebook "Clustering Addresses on the Bitcoin Blockchain".
 <br>
 <br>
 This application provides four types of service, explained in the order in which they appear on the <a href="/">home page</a>.
@@ -37,7 +37,7 @@ This application provides four types of service, explained in the order in which
 	  (viii) The minimum time between two transactions this address participated in
 	  <br>
 	  <br>
-	  The number of clusters is set at k=20. This number was arrived at through a combination of "elbow tests" over a range of values of k and heuristics based on the inspection of the centroids (i.e. the cluster centers) of the kMeans clustering to see if they pick out "transactor" types that can reasonably be regarded as distinct (e.g. if they separate "rich" addresses from "poor" addresses from "funneling" addresses). The "elbow tests" were carried out not only on several different sample and subsamples (overall around 120GB worth of data), but also over different sets of features for each address, i.e. over selections of the features (i)-(viii) above, their ratios, etc. 
+	  The number of clusters is set at k=20. This number was arrived at through a combination of "elbow tests" over a range of values of k and heuristics based on the inspection of the centroids (i.e. the cluster centers) of the kMeans clustering to see if they pick out "transactor" types that can reasonably be regarded as distinct (e.g. if they separate "rich" addresses from "poor" addresses from "funneling" addresses). The "elbow tests" were carried out not only on several different sample and subsamples (overall around 120GB worth of data), but also over different sets of features for each address, i.e. over selections of the features (i)-(viii) above, their ratios, etc.
 	  <br>
 	  <br>
           <p><a href="/">Home</a></p>
