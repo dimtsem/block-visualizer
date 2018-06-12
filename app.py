@@ -339,7 +339,7 @@ def wallettype():
     txapp = blockaddrval[1]
 
     A = []
-    for a in blockaddresses[0:100]:
+    for a in blockaddresses[0:35]:
         print('Getting data for ', a,'...')
         try:
             A.append((a,txapp[a],txbal[a],BitcoinAddress(a).stats()))
